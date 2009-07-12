@@ -22,7 +22,7 @@ class Board (object):
 		"""
 		u = url.endswith("/") and url or url + "/"
 		self.__url  = u
-		self.__user = user or User.anonymouse()
+		self.__user = user or twopy.User.anonymouse()
 		self.__isRetrieved = False
 		
 		self.__index = 0
@@ -73,7 +73,10 @@ class Board (object):
 		"""
 		self.__init_threads()
 		
-		response = self.user.urlopen(self.subject_url, gzip=False)
+		try:
+			response = self.user.urlopen(self.subject_url, gzip=False)
+		except urllib2.HTTPError, e:
+			return e.code
 		if response.code == 200:
 			rawdata = unicode(response.read(), 'Shift_JIS', 'ignore')
 			dat = rawdata.split("\n")
@@ -86,7 +89,8 @@ class Board (object):
 				th = twopy.Thread(self, columns[0], self.user, title, res)
 				self.__threads.append(th)
 			self.__isRetrieved = True
-		else: raise TypeError
+		
+		return response.code
 	
 	def createNewThread(self, subject=u"", name=u"", mailaddr=u"", message=u"",
 	                    submit=u"新規スレッド作成", hidden={}, delay=5):

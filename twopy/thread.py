@@ -131,6 +131,7 @@ class Thread (object):
 			self.__isRetrieved = True
 			self.__isBroken   = False
 			self.__res = len(self.__comments)
+		return response.code
 	
 	def __appendComments(self, dat):
 		no_tag = re.compile("<.*?>")
@@ -231,14 +232,14 @@ class Thread (object):
 		return utility.bbsPost(self.user, self.board, params, referer)
 	
 	def __iter__(self):
-		if not self.isRetrieved: raise NotRetrievedError
+		if not self.isRetrieved: raise twopy.NotRetrievedError
 		for comment in self.__comments:
 			yield comment
 	
 	def __len__(self):
-		if not self.isRetrieved: raise NotRetrievedError
+		if not self.isRetrieved: raise twopy.NotRetrievedError
 		return len(self.__comments)
 	
 	def __getitem__(self, i):
-		if not self.isRetrieved: raise NotRetrievedError
+		if not self.isRetrieved: raise twopy.NotRetrievedError
 		return self.__comments[i-1]
