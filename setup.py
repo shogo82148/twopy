@@ -6,7 +6,7 @@ try:
 	from setuptools import setup
 except:
 	from distutils.core import setup
-
+import twopy
 name = twopy.__name__
 author, email = parseaddr(twopy.__author__)
 
@@ -19,6 +19,4 @@ setup(
 	license          = twopy.__license__,
 	packages         = ["twopy"],
 	platforms        = ["any"],
-	install_requires = [""],
-	zip_safe         = True,
 )
