@@ -15,7 +15,7 @@ class Comment (object):
 	__be = re.compile(r"BE:(?P<be>.*)")
 	__datetime = re.compile(r"(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})\(.*\) (?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(\.(?P<csec>\d+)|)")
 	__urls = re.compile(r"(ttps?:\/\/[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+)")
-	__response = re.compile(r">>(\d{1,4}|＞＞[０-９]{1,4})")
+	__response = re.compile(r"(>>\d{1,4}|＞＞[０-９]{1,4})(-\d{1,4}|−[０-９]{1,4}|)")
 	
 	def __init__(self, thread, line, number):
 		"""
@@ -107,22 +107,35 @@ class Comment (object):
 		"""
 		if self.__responses_cache == None:
 			result = Comment.__response.finditer(self.body)
-			l = [r.group(0) for r in result]
+			l = [(r.group(1),r.group(2)) for r in result]
 			self.__responses_cache = l
 		
 		l = self.__responses_cache
-		if returnType == "str": return l
-		elif returnType == "int":
-			ld = [int(unicodedata.normalize("NFKC", m[2:])) for m in l]
-			return ld
-		if returnType == "comment":
-			ld = [int(unicodedata.normalize("NFKC", m[2:])) for m in l]
-			lc = [self.thread[i] for i in ld if 0 < i <= self.thread.res]
-			return lc 
+		if returnType == "str": return ["".join(i) for i in l]
+		elif returnType == "int": return self.__makeIntegerLists(l)
+		elif returnType == "comment":
+			rl  = self.__makeIntegerLists(l)
+			rl2 = []
+			for i in rl:
+				if type(i) == int:
+					if 0<i<=self.thread.res: rl2.append(self.thread[i])
+				else: rl2.append([self.thread[j] for j in i if 0<j<=self.thread.res])
+			return rl2
+					
 		else: raise TypeError
 			
 	res = property(extractResponses)
 	responses = property(extractResponses)
+	
+	def __makeIntegerLists(self, l):
+		rl = []
+		for i in l:
+			start = int(unicodedata.normalize("NFKC", i[0][2:]))
+			if i[1] == "": rl.append(start)
+			else:
+				end   = int(unicodedata.normalize("NFKC", i[1][1:]))
+				rl.append(range(start, end+1))
+		return rl
 	
 	def render(self):
 		"""
