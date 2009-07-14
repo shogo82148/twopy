@@ -6,7 +6,6 @@ try:
 	from setuptools import setup
 except:
 	from distutils.core import setup
-import tremolo
 
 name = twopy.__name__
 author, email = parseaddr(twopy.__author__)
