@@ -11,8 +11,17 @@ class Thread (object):
   
   __url  = re.compile(r"http://(.+?)/test/read.cgi/(.+?)/(\d+)")
   __etag = re.compile(r'".*"')
-  
   __hidden = re.compile(r'input type=hidden name="(.+?)" value="(.+?)"')
+  
+  DATOUT_203_MESSAGE = u"""
+    <html>
+      <head>
+        <title>203 Non-Authoritative Information</title>
+      </head>
+      <body>
+        <p>203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。</p>
+      </body>
+    </html>"""
   
   @classmethod
   def initWithUrl(cls, url, user=None):
@@ -133,7 +142,7 @@ class Thread (object):
       self.__res = len(self.__comments)
     if response.code == 203:
       # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
-      raise twopy.DatoutError, twopy.Message(self.__rawdat)
+      raise twopy.DatoutError, twopy.Message(Thread.DATOUT_203_MESSAGE)
     
     return (response.code, self.__res)
   
