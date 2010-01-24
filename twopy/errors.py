@@ -29,8 +29,18 @@ class Message (object):
   __body_re  = re.compile("<body>(?P<body>.*?)</body>")
   
   def __init__(self, dat):
-    self.__title = Message.__title_re.search(dat).group("title")
-    self.__body = Message.__body_re.search(dat).group("body")
+    if type(dat) == str or type(dat) == unicode:
+      self.__title = Message.__title_re.search(dat).group("title")
+      self.__body  = Message.__body_re.search(dat).group("body")
+    elif type(dat) == tuple or type(dat) == list:
+      self.__title = dat[0]
+      self.__body  = dat[1]
+    elif type(dat) == dict:
+      self.__title = dat["title"]
+      self.__body  = dat["body"]
+    else:
+      self.__title = ""
+      self.__body  = ""
   
   def getTitle(self): return self.__title
   title = property(getTitle)
