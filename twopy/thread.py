@@ -130,25 +130,22 @@ class Thread (object):
       self.__isRetrieved = True
       self.__isBroken   = False
       self.__res = len(self.__comments)
-    if response.code == 203:
+    elif response.code == 203:
       # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
       raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
     
     return (response.code, self.__res)
   
   def __appendComments(self, dat):
-    no_tag = re.compile("<.*?>")
-    nt = re.compile("(?P<name>.*)</b>(?P<trip>.*)<b>")
-    di = re.compile("(?P<date>.*) ID:(?P<id>.*)")
-    
     num = 0
-    for (i, line) in enumerate(dat.split("\n")):
+    for line in dat.split("\n"):
       if len(self.__comments) == 0 :
         columns = line.split("<>")
         self.__title = columns[4]
       if line != "":
-        self.__comments.append( twopy.Comment(self, line, i+1) )
+        self.__res += 1
         num += 1
+        self.__comments.append( twopy.Comment(self, line, self.__res) )
     return num
 
   def update(self):
@@ -177,6 +174,9 @@ class Thread (object):
       elif response.code == 416:
         # datが壊れている場合
         self.__isBroken = True
+      elif response.code == 203:
+        # dat落ちと判断
+        raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
       else: raise TypeError
       
       return (response.code, num)
