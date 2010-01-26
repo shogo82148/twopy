@@ -50,7 +50,7 @@ class Thread (object):
     self.__filename = filename
     self.__user = user or twopy.User.anonymouse()
     self.__title = title
-    self.__res = res
+    self.__initialResNumber = res
     self.__rawdat = ""
     self.__comments = []
     
@@ -80,7 +80,9 @@ class Thread (object):
   def getTitle(self): return self.__title
   title = property(getTitle)
   
-  def getResponse(self): return self.__res
+  def getResponse(self):
+    if self.isRetrieved: return len(self.__comments)
+    else: return self.__initialResNumber
   response = property(getResponse)
   res      = property(getResponse)
   
@@ -113,11 +115,14 @@ class Thread (object):
   def retrieve(self):
     """
     スレッドからdatファイルを読み込み、その内容を取得します.
+    
+    返り値: HTTPステータスコードと、取得したコメントが格納されている配列のタプル
     """
     self.__init_thread()
     response = self.user.urlopen(self.url, gzip=True)
     
     if response.code == 200:
+      self.__isRetrieved = True
       headers = response.info()
       self.__last_modified = headers["Last-Modified"]
       self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
@@ -127,50 +132,50 @@ class Thread (object):
         # Dat落ちと判断
         raise twopy.DatoutError, twopy.Message(self.__rawdat)
       self.__appendComments(unicode(self.__rawdat, "Shift_JIS", "replace"))
-      self.__isRetrieved = True
       self.__isBroken   = False
       self.__res = len(self.__comments)
     elif response.code == 203:
       # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
+      self.__isRetrieved = False
       raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
     
-    return (response.code, self.__res)
+    return (response.code, self.__comments)
   
   def __appendComments(self, dat):
-    num = 0
+    comments = []
     for line in dat.split("\n"):
       if len(self.__comments) == 0 :
         columns = line.split("<>")
         self.__title = columns[4]
       if line != "":
-        self.__res += 1
-        num += 1
-        self.__comments.append( twopy.Comment(self, line, self.__res) )
-    return num
+        tmp = twopy.Comment(self, line, self.res+1)
+        comments.append(tmp)
+        self.__comments.append(tmp)
+    return comments
 
   def update(self):
     """
     スレッドの内容を更新します.
     
-    返り値: HTTPステータスコード
+    返り値: HTTPステータスコードと、取得したコメントが格納されている配列のタプル
     """
     if not self.isRetrieved: # 未取得だった場合
       return self.retrieve()
 
-    num = 0    
+    updatedComments = []
     try:
       response = self.user.urlopen(self.url, gzip=False, bytes=len(self.__rawdat),
                                    if_modified_since=self.__last_modified,
                                    if_none_match=self.__etag)
       if response.code == 206:
         # datが更新されていた場合
+        self.__isRetrieved = True
         headers = response.info()
         self.__last_modified = headers["Last-Modified"]
         self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
         newdat = response.read()
         self.__rawdat += newdat
-        num = self.__appendComments(newdat)
-        self.__res = len(self.__comments)
+        updatedComments = self.__appendComments(newdat)
       elif response.code == 416:
         # datが壊れている場合
         self.__isBroken = True
@@ -179,13 +184,13 @@ class Thread (object):
         raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
       else: raise TypeError
       
-      return (response.code, num)
+      return (response.code, updatedComments)
     
     except urllib2.HTTPError, e:
       if e.code == 304:
         # datが更新されていない場合
         pass
-      return (e.code, num)
+      return (e.code, updatedComments)
   
   def autopost(self, name=u"", mailaddr=u"", message=u"",
                submit=u"書き込む", delay=5):
