@@ -14,25 +14,52 @@ class Thread (object):
   __hidden = re.compile(r'input type=hidden name="(.+?)" value="(.+?)"')
   
   @classmethod
-  def initWithUrl(cls, url, user=None):
+  def initWithURL(cls, url, board=None, user=None):
     """
     スレッドを示すURLから、対象のThreadクラスを生成します.
   
-    url  : 対象となるURL
-    user : 通信に用いるtwopy.Userクラスのインスタンス
+    url   : 対象となるURL
+    board : Boardインスタンスが既にある場合は指定
+    user  : 通信に用いるtwopy.Userクラスのインスタンス
+    """
+    server, board_name, dat_number = Thread.parseToProperties(url)
+    
+    u = user or twopy.User.anonymouse()
+    if board: b = board
+    else:
+      board_url = "http://%s/%s/" % (server, board_name)
+      b = twopy.Board(board_url, u)
+    filename = "%s.dat" % dat_number 
+    return Thread(b, filename, u)
+  
+  @classmethod
+  def initWithDat(cls, dat, url, user=None):
+    """
+    datからThreadクラスを生成します。
+    
+    dat : スレッドのdatが格納されている文字列
+    url : スレッドを指し示すURL
+    """
+    thread = Thread.initWithURL(url)
+    thread._Thread__rawdat = dat
+    thread.reload()
+    return thread
+    
+  @classmethod
+  def parseURLToProperties(cls, url):
+    """
+    スレッドを示すURLから
+    (サーバードメイン, 板の名前, スレッド番号)
+    からなる文字列のタプルを返します。
     """
     rs = Thread.__url.search(url)
-    if rs == None: raise TypeError
+    assert rs, Exception("this url is not valid.")
     
     server     = rs.group(1)
     board_name = rs.group(2)
     dat_number = rs.group(3)
     
-    board_url = "http://%s/%s/" % (server, board_name)
-    u = user or twopy.User.anonymouse()
-    b = twopy.Board(board_url, u)
-    filename = "%s.dat" % dat_number 
-    return Thread(b, filename, u)
+    return (server, board_name, dat_number)
   
   def __init__(self, board, filename, user=None, title="", res=0):
     """
@@ -86,6 +113,9 @@ class Thread (object):
   response = property(getResponse)
   res      = property(getResponse)
   
+  def getDat(self): return self.__rawdat
+  dat = property(getDat)
+  
   def getDatNumber(self):
     return int(self.filename[:-4])
   dat_number = property(getDatNumber)
@@ -131,7 +161,7 @@ class Thread (object):
       if self.__rawdat.startswith("<html>"):
         # Dat落ちと判断
         raise twopy.DatoutError, twopy.Message(self.__rawdat)
-      self.__appendComments(unicode(self.__rawdat, "Shift_JIS", "replace"))
+      self.__parseDatToComments(unicode(self.__rawdat, "Shift_JIS", "replace"))
       self.__isBroken   = False
       self.__res = len(self.__comments)
     elif response.code == 203:
@@ -141,7 +171,7 @@ class Thread (object):
     
     return (response.code, self.__comments)
   
-  def __appendComments(self, dat):
+  def __parseDatToComments(self, dat):
     comments = []
     for line in dat.split("\n"):
       if len(self.__comments) == 0 :
@@ -175,7 +205,7 @@ class Thread (object):
         self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
         newdat = response.read()
         self.__rawdat += newdat
-        updatedComments = self.__appendComments(newdat)
+        updatedComments = self.__parseDatToComments(newdat)
       elif response.code == 416:
         # datが壊れている場合
         self.__isBroken = True
@@ -191,6 +221,14 @@ class Thread (object):
         # datが更新されていない場合
         pass
       return (e.code, updatedComments)
+  
+  def reload(self):
+    """
+    現在保管しているdatデータを再読み込みします。
+    """
+    self.__comments = self.__parseDatToComments(self.__rawdat)
+    self.__isRetrieved = True
+    self.__isBroken = False 
   
   def autopost(self, name=u"", mailaddr=u"", message=u"",
                submit=u"書き込む", delay=5):
