@@ -14,6 +14,6 @@ from board import Board
 from user import User
 from thread import Thread
 from comment import Comment
-from errors import DatoutError, NotRetrievedError, Message
+from errors import DatoutError, BrokenError, NotRetrievedError, Message
 
 from utility import STATUS_FALSE, STATUS_TRUE, STATUS_ERROR, STATUS_CHECK, STATUS_COOKIE

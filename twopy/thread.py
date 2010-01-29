@@ -61,27 +61,25 @@ class Thread (object):
     
     return (server, board_name, dat_number)
   
-  def __init__(self, board, filename, user=None, title="", res=0):
+  def __init__(self, board, filename, user=None, title="", initialRes=0):
     """
     オブジェクトのコンストラクタです.
   
-    board    : 対象となる板のインスタンス
-    filename : datファイル名
-    user     : 通信に用いるtwopy.Userクラスのインスタンス
-    title    : スレッドのタイトルが判明している場合は別途指定.
-               retrieve()が呼び出された場合は、取得したスレッド名で上書きされる.
-    res      : スレッドのレス数が判明している場合は別途指定.
-               retrieve()が呼び出された場合は、取得したレス数で上書きされる.
+    board      : 対象となる板のインスタンス
+    filename   : datファイル名
+    user       : 通信に用いるtwopy.Userクラスのインスタンス
+    title      : スレッドのタイトルが判明している場合は別途指定.
+                 retrieve()が呼び出された場合は、取得したスレッド名で上書きされる.
+    initialRes : スレッドのレス数が判明している場合は別途指定.
     """
     self.__board = board
     self.__filename = filename
     self.__user = user or twopy.User.anonymouse()
     self.__title = title
-    self.__initialResNumber = res
+    self.__initialResNumber = initialRes
     self.__rawdat = ""
     self.__comments = []
     
-    self.__isRetrieved = False
     self.__isBroken   = False
     self.__last_modified = None
     self.__etag  = None
@@ -89,7 +87,6 @@ class Thread (object):
   def __init_thread(self):
     self.__rawdat = ""
     self.__comments = []
-    self.__isRetrieved = False
   
   def getBoard(self): return self.__board
   board = property(getBoard)
@@ -107,11 +104,17 @@ class Thread (object):
   def getTitle(self): return self.__title
   title = property(getTitle)
   
+  def getInitialResponse(self): return self.__initialResNumber
+  initialRes = property(getInitialResponse)
+  
   def getResponse(self):
     if self.isRetrieved: return len(self.__comments)
     else: return self.__initialResNumber
   response = property(getResponse)
   res      = property(getResponse)
+  
+  def getPosition(self): return len(self.__comments)
+  position = property(getPosition)
   
   def getDat(self): return self.__rawdat
   dat = property(getDat)
@@ -120,7 +123,9 @@ class Thread (object):
     return int(self.filename[:-4])
   dat_number = property(getDatNumber)
   
-  def get_isRetrieved(self): return self.__isRetrieved
+  def get_isRetrieved(self):
+    if len(self.__comments) > 0: return True
+    else: return False
   isRetrieved = property(get_isRetrieved)
   
   def get_isBroken(self): return self.__isBroken
@@ -152,7 +157,6 @@ class Thread (object):
     response = self.user.urlopen(self.url, gzip=True)
     
     if response.code == 200:
-      self.__isRetrieved = True
       headers = response.info()
       self.__last_modified = headers["Last-Modified"]
       self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
@@ -166,11 +170,9 @@ class Thread (object):
       self.__res = len(self.__comments)
     elif response.code == 203:
       # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
-      self.__isRetrieved = False
-      raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+      raise twopy.DatoutError, twopy.Message([u"203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
     elif response.code == 404:
-      self.__isRetrieved = False
-      raise twopy.DatoutError, twopy.Message(["404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+      raise twopy.DatoutError, twopy.Message([u"404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
     
     return (response.code, self.__comments)
   
@@ -181,7 +183,7 @@ class Thread (object):
         columns = line.split("<>")
         self.__title = columns[4]
       if line != "":
-        tmp = twopy.Comment(self, line, self.res+1)
+        tmp = twopy.Comment(self, line, self.position+1)
         comments.append(tmp)
         self.__comments.append(tmp)
     return comments
@@ -192,6 +194,7 @@ class Thread (object):
     
     返り値: HTTPステータスコードと、取得したコメントが格納されている配列のタプル
     """
+    assert self.isBroken, twopy.BrokenError("this thread is broken. not updated.")
     if not self.isRetrieved: # 未取得だった場合
       return self.retrieve()
 
@@ -202,7 +205,6 @@ class Thread (object):
                                    if_none_match=self.__etag)
       if response.code == 206:
         # datが更新されていた場合
-        self.__isRetrieved = True
         headers = response.info()
         self.__last_modified = headers["Last-Modified"]
         self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
@@ -214,9 +216,10 @@ class Thread (object):
         self.__isBroken = True
       elif response.code == 203:
         # dat落ちと判断
-        raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+        raise twopy.DatoutError, twopy.Message([u"203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
       elif response.code == 404:
-        raise twopy.DatoutError, twopy.Message(["404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+        # dat落ちと判断
+        raise twopy.DatoutError, twopy.Message([u"404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
       else: raise TypeError
       
       return (response.code, updatedComments)
@@ -232,8 +235,15 @@ class Thread (object):
     現在保管しているdatデータを再読み込みします。
     """
     self.__comments = self.__parseDatToComments(self.__rawdat)
-    self.__isRetrieved = True
     self.__isBroken = False 
+  
+  def reloadWithDat(self, dat):
+    """
+    DATデータからThreadクラスを再読み込みします。
+    """
+    self.__rawdat = dat
+    self.__comments = self.__parseDatToComments(dat)
+    self.__isBroken = False
   
   def autopost(self, name=u"", mailaddr=u"", message=u"",
                submit=u"書き込む", delay=5):

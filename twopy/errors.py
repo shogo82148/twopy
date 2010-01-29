@@ -23,6 +23,16 @@ class NotRetrievedError (Exception):
   def __str__(self):
     return "NotRetrievedError: %s" % (self.value)
 
+class BrokenError (Exception):
+  """
+  スレッドが壊れているときに送出されるエラーです.
+  """
+  def __init__(self, value):
+    self.value = value
+  
+  def __str__(self):
+    return "BrokenError: %s" % (self.value)
+
 class Message (object):
   
   __title_re = re.compile("<title>(?P<title>.*?)</title>")
