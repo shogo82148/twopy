@@ -194,7 +194,7 @@ class Thread (object):
     
     返り値: HTTPステータスコードと、取得したコメントが格納されている配列のタプル
     """
-    assert self.isBroken, twopy.BrokenError("this thread is broken. not updated.")
+    assert not self.isBroken, twopy.BrokenError("this thread is broken. not updated.")
     if not self.isRetrieved: # 未取得だった場合
       return self.retrieve()
 
@@ -216,10 +216,10 @@ class Thread (object):
         self.__isBroken = True
       elif response.code == 203:
         # dat落ちと判断
-        raise twopy.DatoutError, twopy.Message([u"203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+        raise twopy.DatoutError, twopy.Message( (u"203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。") )
       elif response.code == 404:
         # dat落ちと判断
-        raise twopy.DatoutError, twopy.Message([u"404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+        raise twopy.DatoutError, twopy.Message( (u"404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。") )
       else: raise TypeError
       
       return (response.code, updatedComments)
