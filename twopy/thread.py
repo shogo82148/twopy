@@ -137,7 +137,7 @@ class Thread (object):
   url = property(getUrl)
   
   def getCGIUrl(self):
-    u = "%stest/read.cgi/%s/" % (self.board.url, self.filename[:-4])
+    u = "%stest/read.cgi/%s/%s/" % (self.board.url, self.board.name, self.filename[:-4])
     return u
   cgi_url = property(getCGIUrl)
   
