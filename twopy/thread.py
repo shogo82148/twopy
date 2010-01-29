@@ -167,7 +167,10 @@ class Thread (object):
     elif response.code == 203:
       # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
       self.__isRetrieved = False
-      raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+      raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+    elif response.code == 404:
+      self.__isRetrieved = False
+      raise twopy.DatoutError, twopy.Message(["404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
     
     return (response.code, self.__comments)
   
@@ -211,7 +214,9 @@ class Thread (object):
         self.__isBroken = True
       elif response.code == 203:
         # dat落ちと判断
-        raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+        raise twopy.DatoutError, twopy.Message(["203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+      elif response.code == 404:
+        raise twopy.DatoutError, twopy.Message(["404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
       else: raise TypeError
       
       return (response.code, updatedComments)
