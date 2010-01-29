@@ -22,7 +22,7 @@ class Thread (object):
     board : Boardインスタンスが既にある場合は指定
     user  : 通信に用いるtwopy.Userクラスのインスタンス
     """
-    server, board_name, dat_number = Thread.parseToProperties(url)
+    server, board_name, dat_number = Thread.parseURLToProperties(url)
     
     u = user or twopy.User.anonymouse()
     if board: b = board
@@ -135,6 +135,11 @@ class Thread (object):
     u = "%sdat/%s" % (self.board.url, self.filename)
     return u
   url = property(getUrl)
+  
+  def getCGIUrl(self):
+    u = "%stest/read.cgi/%s/" % (self.board.url, self.filename[:-4])
+    return u
+  cgi_url = property(getCGIUrl)
   
   def getSince(self):
     return datetime.datetime.fromtimestamp(self.dat_number)
