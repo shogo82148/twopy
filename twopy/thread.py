@@ -221,10 +221,12 @@ class Thread (object):
         self.__isBroken = True
       elif response.code == 203:
         # dat落ちと判断
-        raise twopy.DatoutError, twopy.Message( (u"203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。") )
+        raise twopy.DatoutError, twopy.Message( (u"203 Non-Authoritative Information", \
+        u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。") )
       elif response.code == 404:
         # dat落ちと判断
-        raise twopy.DatoutError, twopy.Message( (u"404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。") )
+        raise twopy.DatoutError, twopy.Message( (u"404 File Not Found", \
+        u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。") )
       else: raise TypeError
       
       return (response.code, updatedComments)
@@ -233,6 +235,9 @@ class Thread (object):
       if e.code == 304:
         # datが更新されていない場合
         pass
+      elif response.code == 404:
+        raise twopy.DatoutError, twopy.Message([u"404 File Not Found", \
+        u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
       return (e.code, updatedComments)
   
   def reload(self):
