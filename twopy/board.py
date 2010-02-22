@@ -26,8 +26,8 @@ class Board (object):
         user : 通信に用いるtwopy.Userクラスのインスタンス
         """
         u = url.endswith("/") and url or url + "/"
-        self.__url  = u
-        self.__user = user or twopy.User.anonymouse()
+        self.__url = u
+        self.__user = user if user else twopy.User.anonymouse()
         self.__isRetrieved = False
 
         self.__index = 0
@@ -51,8 +51,8 @@ class Board (object):
     config = property(getConfig, setConfig)
 
     def getSubject(self):
-        su = self.url.endswith("/") and \
-                 self.url + "subject.txt" or self.url + "/subject.txt"
+        su = self.url + "subject.txt" if self.url.endswith("/") \
+             else self.url + "/subject.txt"
         return su
     subject_url = property(getSubject)
 
@@ -99,7 +99,7 @@ class Board (object):
                     continue
                 r = Board.__tr_re.search(columns[1])
                 title = r.group("title")
-                res     = int(r.group("res"))
+                res = int(r.group("res"))
                 th = twopy.Thread(self, columns[0], self.user, title, res)
                 self.__threads.append(th)
             self.__isRetrieved = True

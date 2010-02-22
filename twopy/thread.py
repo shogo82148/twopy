@@ -64,7 +64,7 @@ class Thread (object):
         rs = Thread.__url.search(url)
         assert rs, Exception("this url is not valid.")
 
-        server     = rs.group(1)
+        server = rs.group(1)
         board_name = rs.group(2)
         dat_number = rs.group(3)
 
@@ -89,9 +89,9 @@ class Thread (object):
         self.__rawdat = ""
         self.__comments = []
 
-        self.__isBroken     = False
+        self.__isBroken = False
         self.__last_modified = None
-        self.__etag    = None
+        self.__etag = None
 
     def __init_thread(self):
         self.__rawdat = ""
@@ -130,7 +130,7 @@ class Thread (object):
         else:
             return self.__initialResNumber
     response = property(getResponse)
-    res      = property(getResponse)
+    res = property(getResponse)
 
     def getPosition(self):
         return len(self.__comments)
@@ -192,7 +192,7 @@ class Thread (object):
                 # Dat落ちと判断
                 raise twopy.DatoutError, twopy.Message(self.__rawdat)
             self.__parseDatToComments(unicode(self.__rawdat, "Shift_JIS", "replace"))
-            self.__isBroken     = False
+            self.__isBroken = False
             self.__res = len(self.__comments)
         elif response.code == 203:
             # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)

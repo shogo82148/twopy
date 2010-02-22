@@ -3,16 +3,16 @@
 
 import re
 
-STATUS_FALSE  = 0
-STATUS_TRUE   = 1
-STATUS_ERROR  = 2
-STATUS_CHECK  = 3
+STATUS_FALSE = 0
+STATUS_TRUE = 1
+STATUS_ERROR = 2
+STATUS_CHECK = 3
 STATUS_COOKIE = 4
 
-__status_false    = re.compile(u"2ch_X:false")
-__status_true     = re.compile(u"(2ch_X:true|書きこみました)")
-__status_error    = re.compile(u"(2ch_X:error|ＥＲＲＯＲ)")
-__status_check    = re.compile(u"2ch_X:check")
+__status_false = re.compile(u"2ch_X:false")
+__status_true = re.compile(u"(2ch_X:true|書きこみました)")
+__status_error = re.compile(u"(2ch_X:error|ＥＲＲＯＲ)")
+__status_check = re.compile(u"2ch_X:check")
 __status_cookie = re.compile(u"(2ch_X:cookie|書き込み確認)")
 
 __hidden = re.compile(r'input type=hidden name="(.+?)" value="(.+?)"')

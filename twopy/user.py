@@ -14,12 +14,9 @@ class User (object):
     def anonymouse(cls):
         return User()
 
-    def __init__(self,
-                 user_agent="Monazilla 1.00",
-                 language="ja",
-                 keep_alive=300):
+    def __init__(self, user_agent="Monazilla 1.00", language="ja", keep_alive=300):
         self.user_agent = user_agent
-        self.language   = language
+        self.language = language
         self.keep_alive = keep_alive
 
         cj = cookielib.CookieJar()

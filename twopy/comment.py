@@ -66,41 +66,41 @@ class Comment (object):
     def getDate(self):
         return self.__date
     date = property(getDate)
-    
+
     def getBody(self):
         return self.__body
     body = property(getBody)
-    
+
     def getDatetime(self):
         if self.__datetime_cache:
             return self.__datetime_cache
 
         result = Comment.__datetime.search(self.__date)
         if result:
-            year  = int(result.group("year"))
+            year = int(result.group("year"))
             month = int(result.group("month"))
-            day   = int(result.group("day"))
-            hour  = int(result.group("hour"))
-            m     = int(result.group("min"))
-            sec   = int(result.group("sec"))
-            c     = result.group("csec")
-            csec  = c == None and 0 or int(c)
-            
+            day = int(result.group("day"))
+            hour = int(result.group("hour"))
+            m = int(result.group("min"))
+            sec = int(result.group("sec"))
+            c = result.group("csec")
+            csec = 0 if c else int(c)
+
             d = datetime.datetime(year, month, day, hour, m, sec, csec * 10000)
             self.__datetime_cache = d
             return d
         else:
             return None
     datetime = property(getDatetime)
-    
+
     def getID(self):
         return self.__id
     ID = property(getID)
-    
+
     def getBe(self):
         return self.__be
     be = property(getBe)
-    
+
     def extractUrls(self):
         """
         コメントの内容から、URLの一覧を抽出して返します.
@@ -112,7 +112,7 @@ class Comment (object):
         self.__urls_cache = l
         return l
     urls = property(extractUrls)
-    
+
     def extractResponses(self, returnType="str"):
         """
         コメントの内容から、レスポンスの一覧を抽出して返します.
@@ -121,14 +121,14 @@ class Comment (object):
             result = Comment.__response.finditer(self.body)
             l = [(r.group(1), r.group(2)) for r in result]
             self.__responses_cache = l
-        
+
         l = self.__responses_cache
         if returnType == "str":
             return ["".join(i) for i in l]
         elif returnType == "int":
             return self.__makeIntegerLists(l)
         elif returnType == "comment":
-            rl  = self.__makeIntegerLists(l)
+            rl = self.__makeIntegerLists(l)
             rl2 = []
             for i in rl:
                 if type(i) == int:
@@ -164,6 +164,6 @@ class Comment (object):
             header = u"%i 名前:%s [%s]: %s ID:%s" % \
                 (self.number, self.name, self.mailaddr, self.date, self.ID)
         return u"%s\n%s\n" % (header, self.body)
-    
+
     def __unicode__(self):
         return self.render()
