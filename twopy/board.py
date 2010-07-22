@@ -22,8 +22,8 @@ class Board (object):
         """
         オブジェクトのコンストラクタです。
 
-        url    : 対象の2ch板のURL
-        user : 通信に用いるtwopy.Userクラスのインスタンス
+        url: 対象の2ch板のURL
+        user: 通信に用いるtwopy.Userクラスのインスタンス
         """
         u = url.endswith("/") and url or url + "/"
         self.__url = u
@@ -111,25 +111,26 @@ class Board (object):
         新しくスレッドを生成します.
 
         引数:
-        subject  : スレッドのタイトル
-        name     : 名前
-        mailaddr : メールアドレス
-        message  : 本文の文章
-        submit   : 書き込みボタンのキャプション
-        hidden   : hidden属性の値
-        delay    : 本来の時間から何秒だけ後戻りさせるか(未来の時間に書き込むのを防ぐ)
+        subject: スレッドのタイトル
+        name: 名前
+        mailaddr: メールアドレス
+        message: 本文の文章
+        submit: 書き込みボタンのキャプション
+        hidden: hidden属性の値
+        delay: 本来の時間から何秒だけ後戻りさせるか(未来の時間に書き込むのを防ぐ)
 
         返り値:
         レスポンスコードと受信した文章の本文のタプル.
         レスポンスコード:
-        twopy.STATUS_TRUE   書き込み成功
-        twopy.STATUS_FALSE  書き込み成功&警告
-        twopy.STATUS_ERROR  書き込み失敗
-        twopy.STATUS_CHECK  書き込み警告
-        twopy.STATUS_COOKIE 書き込み確認
+        twopy.STATUS_TRUE: 書き込み成功
+        twopy.STATUS_FALSE: 書き込み成功&警告
+        twopy.STATUS_ERROR: 書き込み失敗
+        twopy.STATUS_CHECK: 書き込み警告
+        twopy.STATUS_COOKIE: 書き込み確認
 
         ただし、レスポンスコードがtwopy.STATUS_COOKIEの場合、
-        返り値はレスポンスコード、受信した文章の本文、input->hidden属性の辞書が返されます.
+        返り値はレスポンスコード、受信した文章の本文、
+        input->hidden属性の辞書が返されます.
         """
         referer = self.url
         send_dict = {"bbs": self.name,

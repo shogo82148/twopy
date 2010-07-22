@@ -15,9 +15,13 @@ class Comment (object):
     __delete_tag = re.compile(r"<.+?>")
     __date_and_id = re.compile(r"(?P<date>.*) ID:(?P<id>\S*)")
     __be = re.compile(r"BE:(?P<be>.*)")
-    __datetime = re.compile(r"(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})\(.*\) (?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(\.(?P<csec>\d+)|)")
+    __datetime = re.compile((r"(?P<year>\d{4})/(?P<month>\d{2})/"
+                              "(?P<day>\d{2})\(.*\) "
+                              "(?P<hour>\d{2}):(?P<min>\d{2}):"
+                              "(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
     __urls = re.compile(r"(ttps?:\/\/[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+)")
-    __response = re.compile(r"(>>\d{1,4}|＞＞[０-９]{1,4})(-\d{1,4}|−[０-９]{1,4}|)")
+    __response = re.compile((r"(>>\d{1,4}|＞＞[０-９]{1,4})"
+                              "(-\d{1,4}|−[０-９]{1,4}|)"))
 
     def __init__(self, thread, line, number):
         """
@@ -113,16 +117,20 @@ class Comment (object):
         return l
     urls = property(extractUrls)
 
-    def extractResponses(self, returnType="str"):
-        """
-        コメントの内容から、レスポンスの一覧を抽出して返します.
-        """
+    def __extractResponses(self):
         if self.__responses_cache == None:
             result = Comment.__response.finditer(self.body)
             l = [(r.group(1), r.group(2)) for r in result]
             self.__responses_cache = l
+            return l
+        else:
+            return self.__responses_cache
 
-        l = self.__responses_cache
+    def extractResponses(self):
+        """
+        コメントの内容からレスポンスの一覧を抽出し、文字列として返します.
+        """
+        l = self.__extractResponses()
         if returnType == "str":
             return ["".join(i) for i in l]
         elif returnType == "int":
@@ -142,7 +150,11 @@ class Comment (object):
     res = property(extractResponses)
     responses = property(extractResponses)
 
-    def __makeIntegerLists(self, l):
+    def extractResponsesAsInteger(self):
+        """
+        コメントの内容からレスポンスの一覧を抽出し、整数のリストとして返します.
+        """
+        l = self.__extractResponses()
         rl = []
         for i in l:
             start = int(unicodedata.normalize("NFKC", i[0][2:]))
@@ -152,6 +164,22 @@ class Comment (object):
                 end = int(unicodedata.normalize("NFKC", i[1][1:]))
                 rl.append(range(start, end + 1))
         return rl
+    
+    def extractResponsesAsComment(self):
+        """
+        コメントの内容からレスポンスの一覧を抽出し、コメントのリストとして返します.
+        """
+        rl = self.extractResponsesAsInteger()
+        rl2 = []
+        for i in rl:
+            if type(i) == int:
+                if 0 < i <= self.thread.res:
+                    rl2.append(self.thread[i])
+                else:
+                    rl2.append([self.thread[j] for j in i if 0 < j <= self.thread.res])
+                return rl2
+            else:
+                raise TypeError
 
     def render(self):
         """

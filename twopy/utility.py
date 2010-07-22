@@ -2,6 +2,7 @@
 #-*- coding:utf-8 -*-
 
 import re
+import urllib2
 
 STATUS_FALSE = 0
 STATUS_TRUE = 1

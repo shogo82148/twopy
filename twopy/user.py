@@ -3,7 +3,6 @@
 
 import urllib2
 import cookielib
-import re
 
 
 class User (object):

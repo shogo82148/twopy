@@ -26,9 +26,9 @@ class Thread (object):
         """
         スレッドを示すURLから、対象のThreadクラスを生成します.
 
-        url     : 対象となるURL
-        board : Boardインスタンスが既にある場合は指定
-        user    : 通信に用いるtwopy.Userクラスのインスタンス
+        url: 対象となるURL
+        board: Boardインスタンスが既にある場合は指定
+        user: 通信に用いるtwopy.Userクラスのインスタンス
         """
         server, board_name, dat_number = Thread.parseURLToProperties(url)
 
@@ -46,8 +46,8 @@ class Thread (object):
         """
         datからThreadクラスを生成します。
 
-        dat : スレッドのdatが格納されている文字列
-        url : スレッドを指し示すURL
+        dat: スレッドのdatが格納されている文字列
+        url: スレッドを指し示すURL
         """
         thread = Thread.initWithURL(url)
         thread._Thread__rawdat = dat
@@ -74,12 +74,12 @@ class Thread (object):
         """
         オブジェクトのコンストラクタです.
 
-        board      : 対象となる板のインスタンス
-        filename   : datファイル名
-        user       : 通信に用いるtwopy.Userクラスのインスタンス
-        title      : スレッドのタイトルが判明している場合は別途指定.
-                     retrieve()が呼び出された場合は、取得したスレッド名で上書きされる.
-        initialRes : スレッドのレス数が判明している場合は別途指定.
+        board: 対象となる板のインスタンス
+        filename: datファイル名
+        user: 通信に用いるtwopy.Userクラスのインスタンス
+        title: スレッドのタイトルが判明している場合は別途指定.
+               retrieve()が呼び出された場合は、取得したスレッド名で上書きされる.
+        initialRes: スレッドのレス数が判明している場合は別途指定.
         """
         self.__board = board
         self.__filename = filename
@@ -177,7 +177,8 @@ class Thread (object):
         """
         スレッドからdatファイルを読み込み、その内容を取得します.
 
-        返り値: HTTPステータスコードと、取得したコメントが格納されている配列のタプル
+        返り値:
+        HTTPステータスコードと、取得したコメントが格納されている配列のタプル
         """
         self.__init_thread()
         response = self.user.urlopen(self.url, gzip=True)
@@ -196,9 +197,15 @@ class Thread (object):
             self.__res = len(self.__comments)
         elif response.code == 203:
             # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
-            raise twopy.DatoutError, twopy.Message([u"203 Non-Authoritative Information", u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+            raise twopy.DatoutError(twopy.Message(
+                      [u"203 Non-Authoritative Information",
+                       (u"203レスポンスヘッダが返されました。"
+                        u"このスレッドはDat落ちになったものと考えられます。")]))
         elif response.code == 404:
-            raise twopy.DatoutError, twopy.Message([u"404 File Not Found", u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+            raise twopy.DatoutError(twopy.Message(
+                      [u"404 File Not Found",
+                       (u"404レスポンスヘッダが返されました。"
+                        u"このスレッドはDat落ちになったものと考えられます。")]))
 
         return (response.code, self.__comments)
 
