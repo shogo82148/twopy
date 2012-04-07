@@ -91,7 +91,7 @@ class Board (object):
         except urllib2.HTTPError, e:
             return e.code
         if response.code == 200:
-            rawdata = unicode(response.read(), 'Shift_JIS', 'ignore')
+            rawdata = unicode(response.read(), 'MS932', 'ignore')
             dat = rawdata.split("\n")
             for thread_str in dat:
                 columns = thread_str.split("<>")
@@ -134,12 +134,12 @@ class Board (object):
         """
         referer = self.url
         send_dict = {"bbs": self.name,
-                     "subject": subject.encode("Shift_JIS"),
+                     "subject": subject.encode("MS932"),
                      "time": int(time.time()) - delay,
-                     "FROM": name.encode("Shift_JIS"),
-                     "mail": mailaddr.encode("Shift_JIS"),
-                     "MESSAGE": message.encode("Shift_JIS"),
-                     "submit": submit.encode("Shift_JIS")}
+                     "FROM": name.encode("MS932"),
+                     "mail": mailaddr.encode("MS932"),
+                     "MESSAGE": message.encode("MS932"),
+                     "submit": submit.encode("MS932")}
         send_dict.update(hidden)
         params = urllib.urlencode(send_dict)
 

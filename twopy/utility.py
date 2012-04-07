@@ -28,7 +28,7 @@ def bbsPost(user, board, params, referer):
     try:
         response = user.urlpost(url, params, referer)
         if response.code == 200:
-            body = unicode(response.read(), "Shift_JIS", "ignore")
+            body = unicode(response.read(), "MS932", "ignore")
             code = __detectStatusCode(body)
             if code == STATUS_COOKIE:
                 r = __hidden.search(body)

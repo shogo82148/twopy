@@ -158,7 +158,7 @@ class Thread (object):
     url = property(getUrl)
 
     def getCGIUrl(self):
-        u = "%stest/read.cgi/%s/%s/" % (self.board.url, self.board.name, self.filename[:-4])
+        u = "%stest/read.cgi/%s/%s/" % (self.board.getServer(), self.board.name, self.filename[:-4])
         return u
     cgi_url = property(getCGIUrl)
 
@@ -181,7 +181,10 @@ class Thread (object):
         HTTPステータスコードと、取得したコメントが格納されている配列のタプル
         """
         self.__init_thread()
-        response = self.user.urlopen(self.url, gzip=True)
+        try:
+            response = self.user.urlopen(self.url, gzip=True)
+        except urllib2.HTTPError, e:
+            response = e
 
         if response.code == 200:
             headers = response.info()
@@ -192,7 +195,7 @@ class Thread (object):
             if self.__rawdat.startswith("<html>"):
                 # Dat落ちと判断
                 raise twopy.DatoutError, twopy.Message(self.__rawdat)
-            self.__parseDatToComments(unicode(self.__rawdat, "Shift_JIS", "replace"))
+            self.__parseDatToComments(unicode(self.__rawdat, "MS932", "replace"))
             self.__isBroken = False
             self.__res = len(self.__comments)
         elif response.code == 203:
@@ -211,6 +214,8 @@ class Thread (object):
 
     def __parseDatToComments(self, dat):
         comments = []
+        if type(dat) == str:
+            dat = unicode(dat, "MS932", "replace")
         for line in dat.split("\n"):
             if len(self.__comments) == 0:
                 columns = line.split("<>")
@@ -232,6 +237,7 @@ class Thread (object):
             return self.retrieve()
 
         updatedComments = []
+        response = None
         try:
             response = self.user.urlopen(self.url, gzip=False, bytes=len(self.__rawdat),
                                          if_modified_since=self.__last_modified,
@@ -264,7 +270,7 @@ class Thread (object):
             if e.code == 304:
                 # datが更新されていない場合
                 pass
-            elif response.code == 404:
+            elif e.code == 404:
                 raise twopy.DatoutError, twopy.Message([u"404 File Not Found", \
                 u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
             return (e.code, updatedComments)
@@ -325,10 +331,10 @@ class Thread (object):
         send_dict = {"bbs": self.board.name,
                      "key": self.dat_number,
                      "time": int(time.time()) - delay,
-                     "FROM": name.encode("Shift_JIS"),
-                     "mail": mailaddr.encode("Shift_JIS"),
-                     "MESSAGE": message.encode("Shift_JIS"),
-                     "submit": submit.encode("Shift_JIS")}
+                     "FROM": name.encode("MS932"),
+                     "mail": mailaddr.encode("MS932"),
+                     "MESSAGE": message.encode("MS932"),
+                     "submit": submit.encode("MS932")}
         send_dict.update(hidden)
         params = urllib.urlencode(send_dict)
 

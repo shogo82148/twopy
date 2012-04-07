@@ -19,6 +19,10 @@ class Comment (object):
                               "(?P<day>\d{2})\(.*\) "
                               "(?P<hour>\d{2}):(?P<min>\d{2}):"
                               "(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
+    __datetime2 = re.compile((r"(?P<year>\d{2})/(?P<month>\d{2})/"
+                              "(?P<day>\d{2})\(.*\) "
+                              "(?P<hour>\d{2}):(?P<min>\d{2}):"
+                              "(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
     __urls = re.compile(r"(ttps?:\/\/[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+)")
     __response = re.compile((r"(>>\d{1,4}|＞＞[０-９]{1,4})"
                               "(-\d{1,4}|−[０-９]{1,4}|)"))
@@ -40,7 +44,7 @@ class Comment (object):
         if type(line) == unicode:
             columns = line.split("<>")
         elif type(line) == str:
-            columns = unicode(line, "Shift-JIS", "replace").split("<>")
+            columns = unicode(line, "MS932", "replace").split("<>")
         else:
             raise TypeError("the type of the argument 'line' is not unicode or str.")
         if len(columns) < 5:
@@ -49,10 +53,15 @@ class Comment (object):
         self.__mailaddr = columns[1]
         raw_body = Comment.__delete_tag.sub("", columns[3].replace(" <br> ", "\n"))
         self.__body = xml.sax.saxutils.unescape(raw_body)[1:-1]  # 余分なスペースの削除
+
+        self.__date = ""
+        self.__id = ""
         di_result = Comment.__date_and_id.search(columns[2])
         if di_result:
             self.__date = di_result.group("date") or ""
             self.__id = di_result.group("id") or ""
+        else:
+            self.__date = columns[2]
         be_result = Comment.__be.search(columns[2])
         self.__be = None
         if be_result:
@@ -88,13 +97,34 @@ class Comment (object):
             m = int(result.group("min"))
             sec = int(result.group("sec"))
             c = result.group("csec")
-            csec = 0 if c else int(c)
+            csec = int(c) if c else 0
+            if day>=32: #エイプリルフール対策
+                day = 1
+                month += 1
 
             d = datetime.datetime(year, month, day, hour, m, sec, csec * 10000)
             self.__datetime_cache = d
             return d
-        else:
-            return None
+
+        result = Comment.__datetime2.search(self.__date)
+        if result:
+            year = int(result.group("year")) + 2000
+            month = int(result.group("month"))
+            day = int(result.group("day"))
+            hour = int(result.group("hour"))
+            m = int(result.group("min"))
+            sec = int(result.group("sec"))
+            c = result.group("csec")
+            csec = int(c) if c else 0
+            if day>=32: #エイプリルフール対策
+                day = 1
+                month += 1
+
+            d = datetime.datetime(year, month, day, hour, m, sec, csec * 10000)
+            self.__datetime_cache = d
+            return d
+
+        return None
     datetime = property(getDatetime)
 
     def getID(self):
