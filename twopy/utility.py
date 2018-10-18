@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 STATUS_FALSE = 0
 STATUS_TRUE = 1
@@ -10,11 +10,11 @@ STATUS_ERROR = 2
 STATUS_CHECK = 3
 STATUS_COOKIE = 4
 
-__status_false = re.compile(u"2ch_X:false")
-__status_true = re.compile(u"(2ch_X:true|書きこみました)")
-__status_error = re.compile(u"(2ch_X:error|ＥＲＲＯＲ)")
-__status_check = re.compile(u"2ch_X:check")
-__status_cookie = re.compile(u"(2ch_X:cookie|書き込み確認)")
+__status_false = re.compile("2ch_X:false")
+__status_true = re.compile("(2ch_X:true|書きこみました)")
+__status_error = re.compile("(2ch_X:error|ＥＲＲＯＲ)")
+__status_check = re.compile("2ch_X:check")
+__status_cookie = re.compile("(2ch_X:cookie|書き込み確認)")
 
 __hidden = re.compile(r'input type=hidden name="(.+?)" value="(.+?)"')
 
@@ -28,7 +28,7 @@ def bbsPost(user, board, params, referer):
     try:
         response = user.urlpost(url, params, referer)
         if response.code == 200:
-            body = unicode(response.read(), "MS932", "ignore")
+            body = str(response.read(), "MS932", "ignore")
             code = __detectStatusCode(body)
             if code == STATUS_COOKIE:
                 r = __hidden.search(body)
@@ -38,8 +38,8 @@ def bbsPost(user, board, params, referer):
                 return (code, body)
         else:
             raise TypeError
-    except urllib2.HTTPError, e:
-        print e.code
+    except urllib.error.HTTPError as e:
+        print(e.code)
 
 
 def __detectStatusCode(body):

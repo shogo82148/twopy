@@ -7,7 +7,7 @@ import xml.sax.saxutils
 import unicodedata
 
 
-class Comment (object):
+class Comment:
     """
     スレッド上のコメントを管理するクラスです.
     """
@@ -16,16 +16,16 @@ class Comment (object):
     __date_and_id = re.compile(r"(?P<date>.*) ID:(?P<id>\S*)")
     __be = re.compile(r"BE:(?P<be>.*)")
     __datetime = re.compile((r"(?P<year>\d{4})/(?P<month>\d{2})/"
-                              "(?P<day>\d{2})\(.*\) "
-                              "(?P<hour>\d{2}):(?P<min>\d{2}):"
-                              "(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
+                             r"(?P<day>\d{2})\(.*\) "
+                             r"(?P<hour>\d{2}):(?P<min>\d{2}):"
+                             r"(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
     __datetime2 = re.compile((r"(?P<year>\d{2})/(?P<month>\d{2})/"
-                              "(?P<day>\d{2})\(.*\) "
-                              "(?P<hour>\d{2}):(?P<min>\d{2}):"
-                              "(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
+                              r"(?P<day>\d{2})\(.*\) "
+                              r"(?P<hour>\d{2}):(?P<min>\d{2}):"
+                              r"(?P<sec>\d{2})(\.(?P<csec>\d+)|)"))
     __urls = re.compile(r"(ttps?:\/\/[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+)")
     __response = re.compile((r"(>>\d{1,4}|＞＞[０-９]{1,4})"
-                              "(-\d{1,4}|−[０-９]{1,4}|)"))
+                             r"(-\d{1,4}|−[０-９]{1,4}|)"))
 
     def __init__(self, thread, line, number):
         """
@@ -41,10 +41,10 @@ class Comment (object):
         self.line = line
         self.__datetime_cache = None
         self.__urls_cache = None
-        if type(line) == unicode:
+        if type(line) == str:
             columns = line.split("<>")
         elif type(line) == str:
-            columns = unicode(line, "MS932", "replace").split("<>")
+            columns = str(line, "MS932", "replace").split("<>")
         else:
             raise TypeError("the type of the argument 'line' is not unicode or str.")
         if len(columns) < 5:
@@ -192,7 +192,7 @@ class Comment (object):
                 rl.append(start)
             else:
                 end = int(unicodedata.normalize("NFKC", i[1][1:]))
-                rl.append(range(start, end + 1))
+                rl.append(list(range(start, end + 1)))
         return rl
     
     def extractResponsesAsComment(self):
@@ -216,12 +216,12 @@ class Comment (object):
         取得したコメントから、整形された文章を返します.
         """
         if self.be:
-            header = u"%i 名前:%s [%s]: %s ID:%s BE:%s" % \
+            header = "%i 名前:%s [%s]: %s ID:%s BE:%s" % \
                 (self.number, self.name, self.mailaddr, self.date, self.ID, self.be)
         else:
-            header = u"%i 名前:%s [%s]: %s ID:%s" % \
+            header = "%i 名前:%s [%s]: %s ID:%s" % \
                 (self.number, self.name, self.mailaddr, self.date, self.ID)
-        return u"%s\n%s\n" % (header, self.body)
+        return "%s\n%s\n" % (header, self.body)
 
     def __unicode__(self):
         return self.render()
