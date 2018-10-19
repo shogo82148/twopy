@@ -2,7 +2,6 @@
 #-*- coding:utf-8 -*-
 
 import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
 import gzip
 import io
 import re
@@ -113,7 +112,7 @@ class Thread:
         return self.__conf
 
     def setConfig(self, conf):
-        self.__conf = conf
+        self.get_isRetrieved__conf = conf
     config = property(getConfig, setConfig)
 
     def getTitle(self):
@@ -190,9 +189,9 @@ class Thread:
             headers = response.info()
             self.__last_modified = headers["Last-Modified"]
             self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
-            gzip_str = io.StringIO(response.read())
+            gzip_str = io.BytesIO(response.read())
             self.__rawdat = gzip.GzipFile(fileobj=gzip_str).read()
-            if self.__rawdat.startswith("<html>"):
+            if self.__rawdat.startswith(b"<html>"):
                 # Dat落ちと判断
                 raise twopy.DatoutError(twopy.Message(self.__rawdat))
             self.__parseDatToComments(str(self.__rawdat, "MS932", "replace"))
@@ -214,8 +213,6 @@ class Thread:
 
     def __parseDatToComments(self, dat):
         comments = []
-        if type(dat) == str:
-            dat = str(dat, "MS932", "replace")
         for line in dat.split("\n"):
             if len(self.__comments) == 0:
                 columns = line.split("<>")
