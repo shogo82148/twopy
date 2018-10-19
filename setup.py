@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-from email.Utils import parseaddr
+from email.utils import parseaddr
 try:
 	from setuptools import setup
 except:
