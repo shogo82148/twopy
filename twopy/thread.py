@@ -109,7 +109,7 @@ class Thread:
     user = property(getUser)
 
     def getConfig(self):
-        return self.__conf
+        return self.get_isRetrieved__conf
 
     def setConfig(self, conf):
         self.get_isRetrieved__conf = conf
