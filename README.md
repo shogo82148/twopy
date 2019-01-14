@@ -6,7 +6,7 @@
 twopyは2chのPythonライブラリという意味であり、決してPypyなどのようにやましい意味ではありません。
 
 ここで提供しているのは、shogo82148による改良版です。
-オリジナルのコードは[CodeRepos](http://coderepos.org/share/browser/lang/python/twopy)で公開されていましたが、現在はCodeRepos閉鎖に伴いアクセスできなくなっています。
+オリジナルのコードは[CodeRepos](http://coderepos.org/share/browser/lang/python/twopy)で公開されていましたが、現在はCodeRepos閉鎖に伴いアクセスできなくなっています。
 
 ## Getting Started
 
