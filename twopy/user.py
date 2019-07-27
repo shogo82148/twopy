@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import urllib2
-import cookielib
+import urllib.request, urllib.error, urllib.parse
+import http.cookiejar
 
 
-class User (object):
+class User:
     """
     クッキーの管理や、ユーザーエージェントなどのヘッダ全般を管理するクラスです.
     """
@@ -18,9 +18,9 @@ class User (object):
         self.language = language
         self.keep_alive = keep_alive
 
-        cj = cookielib.CookieJar()
+        cj = http.cookiejar.CookieJar()
         self.__cookie = cj
-        self.__opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        self.__opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
 
     def getOpener(self):
         return self.__opener
@@ -44,7 +44,7 @@ class User (object):
             headers["If-Modified-Since"] = if_modified_since
             headers["If-None-Match"] = if_none_match
             headers["Range"] = "bytes= %i-" % bytes
-        req = urllib2.Request(url, None, headers)
+        req = urllib.request.Request(url, None, headers)
         return req
 
     def urlopen(self, url, gzip=False, bytes=0,
@@ -61,6 +61,6 @@ class User (object):
             "Referer": referer,
             "Connection": "close",
         }
-        req = urllib2.Request(url, None, headers)
+        req = urllib.request.Request(url, None, headers)
         self.__cookie.add_cookie_header(req)
         return self.opener.open(req, param)

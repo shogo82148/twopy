@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
 import time
 import re
 import twopy
-import utility
+from . import utility
 
 
-class Board (object):
+class Board:
     """
     2chの板全般を管理するクラスです。
     """
@@ -47,7 +46,7 @@ class Board (object):
         return self.__conf
 
     def setConfig(self, conf):
-        self__conf = conf
+        self.__conf = conf
     config = property(getConfig, setConfig)
 
     def getSubject(self):
@@ -59,6 +58,7 @@ class Board (object):
     def getBBS(self):
         b = self.url.endswith("/") and \
                 self.url + "test/bbs.cgi" or self.url + "/test/bbs.cgi"
+        return b
 
     def get_isRetrieved(self):
         return self.__isRetrieved
@@ -88,10 +88,10 @@ class Board (object):
 
         try:
             response = self.user.urlopen(self.subject_url, gzip=False)
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             return e.code
         if response.code == 200:
-            rawdata = unicode(response.read(), 'MS932', 'ignore')
+            rawdata = str(response.read(), 'MS932', 'ignore')
             dat = rawdata.split("\n")
             for thread_str in dat:
                 columns = thread_str.split("<>")
@@ -105,8 +105,8 @@ class Board (object):
             self.__isRetrieved = True
         return response.code
 
-    def createNewThread(self, subject=u"", name=u"", mailaddr=u"", message=u"",
-                        submit=u"新規スレッド作成", hidden={}, delay=5):
+    def createNewThread(self, subject="", name="", mailaddr="", message="",
+                        submit="新規スレッド作成", hidden={}, delay=5):
         """
         新しくスレッドを生成します.
 
@@ -141,7 +141,7 @@ class Board (object):
                      "MESSAGE": message.encode("MS932"),
                      "submit": submit.encode("MS932")}
         send_dict.update(hidden)
-        params = urllib.urlencode(send_dict)
+        params = urllib.parse.urlencode(send_dict)
 
         return utility.bbsPost(self.user, self, params, referer)
 

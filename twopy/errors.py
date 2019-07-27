@@ -37,12 +37,12 @@ class BrokenError (Exception):
         return "BrokenError: %s" % (self.value)
 
 
-class Message (object):
+class Message:
     __title_re = re.compile("<title>(?P<title>.*?)</title>")
     __body_re = re.compile("<body>(?P<body>.*?)</body>")
 
     def __init__(self, dat):
-        if type(dat) == str or type(dat) == unicode:
+        if type(dat) == str or type(dat) == str:
             self.__title = Message.__title_re.search(dat).group("title")
             self.__body = Message.__body_re.search(dat).group("body")
         elif type(dat) == tuple or type(dat) == list:

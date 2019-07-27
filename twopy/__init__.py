@@ -10,10 +10,10 @@ __url__     = "http://mglab.blogspot.com/"
 __license__ = "MIT License"
 __date__    = "28 Aplil 2009"
 
-from board import Board
-from user import User
-from thread import Thread
-from comment import Comment
-from errors import DatoutError, BrokenError, NotRetrievedError, Message
+from .board import Board
+from .user import User
+from .thread import Thread
+from .comment import Comment
+from .errors import DatoutError, BrokenError, NotRetrievedError, Message
 
-from utility import STATUS_FALSE, STATUS_TRUE, STATUS_ERROR, STATUS_CHECK, STATUS_COOKIE
+from .utility import STATUS_FALSE, STATUS_TRUE, STATUS_ERROR, STATUS_CHECK, STATUS_COOKIE

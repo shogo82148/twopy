@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
 import gzip
-import StringIO
+import io
 import re
 import time
 import datetime
 import twopy
-import utility
+from . import utility
 
 
-class Thread (object):
+class Thread:
     """
     2chのスレッドを管理するクラスです.
     """
@@ -110,10 +109,10 @@ class Thread (object):
     user = property(getUser)
 
     def getConfig(self):
-        return self.__conf
+        return self.get_isRetrieved__conf
 
     def setConfig(self, conf):
-        self__conf = conf
+        self.get_isRetrieved__conf = conf
     config = property(getConfig, setConfig)
 
     def getTitle(self):
@@ -183,39 +182,37 @@ class Thread (object):
         self.__init_thread()
         try:
             response = self.user.urlopen(self.url, gzip=True)
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             response = e
 
         if response.code == 200:
             headers = response.info()
             self.__last_modified = headers["Last-Modified"]
             self.__etag = Thread.__etag.search(headers["ETag"]).group(0)
-            gzip_str = StringIO.StringIO(response.read())
+            gzip_str = io.BytesIO(response.read())
             self.__rawdat = gzip.GzipFile(fileobj=gzip_str).read()
-            if self.__rawdat.startswith("<html>"):
+            if self.__rawdat.startswith(b"<html>"):
                 # Dat落ちと判断
-                raise twopy.DatoutError, twopy.Message(self.__rawdat)
-            self.__parseDatToComments(unicode(self.__rawdat, "MS932", "replace"))
+                raise twopy.DatoutError(twopy.Message(self.__rawdat))
+            self.__parseDatToComments(str(self.__rawdat, "MS932", "replace"))
             self.__isBroken = False
             self.__res = len(self.__comments)
         elif response.code == 203:
             # Dat落ちと判断(10/01/24現在のanydat.soモジュールの仕様より)
             raise twopy.DatoutError(twopy.Message(
-                      [u"203 Non-Authoritative Information",
-                       (u"203レスポンスヘッダが返されました。"
-                        u"このスレッドはDat落ちになったものと考えられます。")]))
+                      ["203 Non-Authoritative Information",
+                       ("203レスポンスヘッダが返されました。"
+                        "このスレッドはDat落ちになったものと考えられます。")]))
         elif response.code == 404:
             raise twopy.DatoutError(twopy.Message(
-                      [u"404 File Not Found",
-                       (u"404レスポンスヘッダが返されました。"
-                        u"このスレッドはDat落ちになったものと考えられます。")]))
+                      ["404 File Not Found",
+                       ("404レスポンスヘッダが返されました。"
+                        "このスレッドはDat落ちになったものと考えられます。")]))
 
         return (response.code, self.__comments)
 
     def __parseDatToComments(self, dat):
         comments = []
-        if type(dat) == str:
-            dat = unicode(dat, "MS932", "replace")
         for line in dat.split("\n"):
             if len(self.__comments) == 0:
                 columns = line.split("<>")
@@ -255,24 +252,24 @@ class Thread (object):
                 self.__isBroken = True
             elif response.code == 203:
                 # dat落ちと判断
-                raise twopy.DatoutError, twopy.Message((u"203 Non-Authoritative Information", \
-                u"203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"))
+                raise twopy.DatoutError(twopy.Message(("203 Non-Authoritative Information", \
+                "203レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。")))
             elif response.code == 404:
                 # dat落ちと判断
-                raise twopy.DatoutError, twopy.Message((u"404 File Not Found", \
-                u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"))
+                raise twopy.DatoutError(twopy.Message(("404 File Not Found", \
+                "404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。")))
             else:
                 raise TypeError
 
             return (response.code, updatedComments)
 
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             if e.code == 304:
                 # datが更新されていない場合
                 pass
             elif e.code == 404:
-                raise twopy.DatoutError, twopy.Message([u"404 File Not Found", \
-                u"404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"])
+                raise twopy.DatoutError(twopy.Message(["404 File Not Found", \
+                "404レスポンスヘッダが返されました。このスレッドはDat落ちになったものと考えられます。"]))
             return (e.code, updatedComments)
 
     def reload(self):
@@ -290,8 +287,8 @@ class Thread (object):
         self.__comments = self.__parseDatToComments(dat)
         self.__isBroken = False
 
-    def autopost(self, name=u"", mailaddr=u"", message=u"",
-                             submit=u"書き込む", delay=5):
+    def autopost(self, name="", mailaddr="", message="",
+                             submit="書き込む", delay=5):
         """
         書き込みの確認をすべてスキップして書き込みます.
         """
@@ -302,8 +299,8 @@ class Thread (object):
         else:
             return r1
 
-    def post(self, name=u"", mailaddr=u"", message=u"",
-                     submit=u"書き込む", hidden={}, delay=5):
+    def post(self, name="", mailaddr="", message="",
+                     submit="書き込む", hidden={}, delay=5):
         """
         コメントの書き込みを試みます.
 
@@ -336,7 +333,7 @@ class Thread (object):
                      "MESSAGE": message.encode("MS932"),
                      "submit": submit.encode("MS932")}
         send_dict.update(hidden)
-        params = urllib.urlencode(send_dict)
+        params = urllib.parse.urlencode(send_dict)
 
         return utility.bbsPost(self.user, self.board, params, referer)
 

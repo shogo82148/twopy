@@ -1,26 +1,28 @@
-1. twopy -- Pythonistaのための2chライブラリ
-==============================
+# twopy -- Pythonistaのための2chライブラリ
+
+## Description
+
 このモジュールは、Pythonistaのための2ch操作ライブラリを提供します。
 twopyは2chのPythonライブラリという意味であり、決してPypyなどのようにやましい意味ではありません。
 
 ここで提供しているのは、shogo82148による改良版です。
-オリジナルのコードは[CodeRepos](http://coderepos.org/share/browser/lang/python/twopy)を参照してください。
+オリジナルのコードは[CodeRepos](http://coderepos.org/share/browser/lang/python/twopy)で公開されていましたが、現在はCodeRepos閉鎖に伴いアクセスできなくなっています。
 
+## Getting Started
 
-2. 動作環境
-==============================
-動作に必要な環境は以下の通りです。
-Python 2.5 or higher
-2.6.2での環境で動作を確認。外部ライブラリに依存していないので、もしかしたらそれより前のヴァージョンでも動作するかもしれません。
+### Prerequisites
+- Python 3.4 or higher
 
-3. インストール
-==============================
-対象のディレクトリに移動してから、
-% sudo python setup.py install
-でインストールできます。
+### Installation
+対象のディレクトリに移動してから、以下のコマンドでインストールできます。
+```
+$ python setup.py install
+```
 
-4. 著者
-==============================
-rezoo <http://mglab.blogspot.com/>
+## Licence
 
-modified by shogo82148
+[MIT](https://github.com/tcnksm/tool/blob/master/LICENCE)
+
+## Author
+- rezoo <http://mglab.blogspot.com/>
+- modified by shogo82148, yasakawa
